@@ -1,0 +1,14 @@
+name = "health-connect-mcp"
+main = "src/index.ts"
+compatibility_date = "2025-06-01"
+
+# Un solo Durable Object con storage SQLite: nessun database da creare a mano.
+[[durable_objects.bindings]]
+name = "STORE"
+class_name = "HealthStore"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["HealthStore"]
+
+# Il segreto API_SECRET si imposta con:  npx wrangler secret put API_SECRET
