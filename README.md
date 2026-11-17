@@ -1,6 +1,6 @@
 # Health Connect → Claude
 
-Connettore MCP personale che rende **tutti i tuoi dati fitness e salute di Android Health Connect** consultabili da Claude.
+Connettore MCP personale che rende **i dati fitness e salute supportati da questo connettore e autorizzati in Android Health Connect** consultabili da Claude.
 
 ```
 ┌──────────────┐  ogni ora   ┌───────────────────────────┐   MCP (HTTPS)   ┌────────┐
@@ -25,26 +25,28 @@ Health Connect non ha un'API cloud: i dati stanno solo sul telefono. Per questo 
 | `get_sleep` | Sonno: orari, durata, minuti per fase (leggero/profondo/REM/sveglio) |
 | `get_records` | Record grezzi: FC, FC a riposo, HRV, peso, altezza, massa grassa/magra, metabolismo basale, SpO₂, frequenza respiratoria, pressione, glicemia, temperatura, idratazione, alimentazione, VO₂ max |
 
-## Installazione (si può fare tutto dal telefono)
+## Installazione
 
 ### 1. Scegli un segreto
 Inventa una stringa casuale lunga (almeno 16 caratteri, meglio 32+, solo lettere e numeri), ad esempio generata dal tuo password manager. Protegge sia l'invio dei dati sia l'URL del connettore: **non condividerla**.
 
 ### 2. Pubblica il server su Cloudflare
-1. Crea un account gratuito su [dash.cloudflare.com](https://dash.cloudflare.com).
-2. Copia il tuo **Account ID** (pagina *Workers & Pages*, colonna a destra).
-3. Crea un **API token**: *My Profile → API Tokens → Create Token → modello "Edit Cloudflare Workers"*.
-4. Su GitHub, in questo repository: *Settings → Secrets and variables → Actions → New repository secret* e crea:
-   - `CLOUDFLARE_API_TOKEN` = il token
-   - `CLOUDFLARE_ACCOUNT_ID` = l'Account ID
-   - `API_SECRET` = il segreto del passo 1
-5. *Actions → "Deploy server MCP (Cloudflare)" → Run workflow*.
-6. Alla fine il log mostra l'URL del server, del tipo `https://health-connect-mcp.<tuo-sottodominio>.workers.dev`. Aprendolo nel browser deve comparire «Health Connect MCP server attivo.»
 
-> In alternativa, da un computer: `cd server && npm install && npx wrangler deploy && npx wrangler secret put API_SECRET`.
+Da un computer con Node.js e un account Cloudflare, esegui:
+
+```bash
+cd server
+npm ci
+npm run typecheck
+npx wrangler login
+npx wrangler deploy
+npx wrangler secret put API_SECRET
+```
+
+Usa l’URL `workers.dev` indicato dal deploy.
 
 ### 3. Installa l'app Android
-1. Su GitHub apri *Releases* e scarica l'ultimo `HealthConnectClaude.apk` (viene ricompilato automaticamente a ogni modifica di `android/`).
+1. Con Android SDK e JDK 17, dalla cartella `android/` esegui `./gradlew :app:assembleDebug` (su Windows `gradlew.bat :app:assembleDebug`). L’APK è in `app/build/outputs/apk/debug/`.
 2. Installalo (consenti l'installazione da origini sconosciute se richiesto).
 3. Nell'app:
    1. Inserisci l'URL del server e il segreto → **Salva impostazioni**.
@@ -62,8 +64,8 @@ Da quel momento l'app sincronizza da sola circa ogni ora.
 Poi chiedi ad esempio: *"Come è andato il mio sonno questa settimana rispetto alla precedente?"* oppure *"Riassumi i miei allenamenti di ottobre"*.
 
 ## Sicurezza e privacy
-- I dati restano nel **tuo** account Cloudflare (Durable Object con SQLite), nessun servizio di terze parti.
-- L'URL del connettore contiene il segreto: chi lo conosce può leggere i dati. Se pensi sia trapelato, cambia `API_SECRET` (aggiorna il secret su GitHub e rilancia il deploy), poi aggiorna l'app e il connettore.
+- Il server conserva le copie sincronizzate nel Durable Object SQLite del tuo account Cloudflare. Quando usi il connettore, Claude riceve i dati restituiti dagli strumenti MCP richiesti.
+- L'URL del connettore contiene il segreto: chi lo conosce può leggere i dati. Se pensi sia trapelato, cambia `API_SECRET` con `npx wrangler secret put API_SECRET`, poi aggiorna l'app e il connettore.
 - L'APK è firmato con una chiave di debug inclusa nel repository (`android/app/debug.keystore`), così ogni nuova build si installa come aggiornamento. Installa solo APK prodotti da questo repository.
 
 ## Note e limiti
