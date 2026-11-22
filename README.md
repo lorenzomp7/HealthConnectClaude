@@ -81,3 +81,7 @@ npm install
 echo 'API_SECRET=un-segreto-di-prova-lungo' > .dev.vars
 npx wrangler dev
 ```
+
+## Crediti
+
+Progetto di [lorenzomp7](https://github.com/lorenzomp7), sviluppato insieme a [Claude](https://claude.ai) di Anthropic.
